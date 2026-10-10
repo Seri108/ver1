@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 남이섬 교직원 연수 스마트 가이드 &amp; 플레이</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        forest: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                            950: '#052e16'
+                        },
+                        gold: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: radial-gradient(circle at 20% 20%, #f0fdf4 0%, #e2e8f0 100%);
+            color: #0f172a;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            border-color: #15803d;
+        }
+        .option-card:active {
+            transform: scale(0.98);
+        }
+        .modal-anim {
+            animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        /* PC 16:9 뷰포트 고정 컨테이너 */
+        @media (min-width: 1024px) {
+            .ratio-16-9-box {
+                aspect-ratio: 16 / 9;
+                max-height: 860px;
+                width: 100%;
+                max-width: 1440px;
+            }
+        }
+        .hidden-screen {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen lg:h-screen flex items-center justify-center p-0 lg:p-6 overflow-x-hidden">
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app" class="ratio-16-9-box w-full h-[100dvh] lg:h-auto bg-white/95 backdrop-blur-xl lg:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border-0 lg:border border-slate-200/80">
+
+        <!-- Header -->
+        <header class="bg-forest-900 text-white px-5 py-3.5 flex justify-between items-center z-20 shrink-0 border-b border-forest-800 shadow-md">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
+                <div class="w-9 h-9 rounded-xl bg-forest-800/80 border border-forest-700 flex items-center justify-center shadow-inner">
+                    <i class="fa-solid fa-tree text-gold-500 text-base"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-sm tracking-tight text-slate-100">2026 남이섬 교직원 연수</span>
+                        <span class="hidden sm:inline-block px-2 py-0.5 rounded-full bg-forest-800 text-gold-500 text-[10px] font-bold border border-forest-700">스마트 가이드</span>
+                    </div>
+                    <span class="text-[11px] text-forest-200 font-medium">삼성고등학교 전 교직원 역량강화 &amp; 힐링 워크숍</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- QR 바로보기 버튼 -->
+                <button onclick="openQrModal()" class="text-xs bg-forest-800 hover:bg-forest-700 text-slate-200 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 font-semibold border border-forest-700 transition cursor-pointer" title="상세정보 QR코드 열기">
+                    <i class="fa-solid fa-qrcode text-gold-500"></i>
+                    <span class="hidden md:inline">상세 QR</span>
+                </button>
+                <!-- 핵심 요약 버튼 -->
+                <button onclick="toggleInfoModal()" class="text-xs bg-forest-800 hover:bg-forest-700 text-gold-500 px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-bold border border-gold-500/30 transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-compass text-gold-500"></i>
+                    <span class="hidden sm:inline">핵심 요약</span>
+                    <span class="sm:hidden">요약</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area: PC 2-Column Split, Mobile Single Column -->
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+            <!-- PC 전용 사이드바 (모바일은 숨김) -->
+            <aside class="hidden lg:flex w-80 bg-slate-50/90 border-r border-slate-200 p-5 flex-col justify-between shrink-0 overflow-y-auto custom-scrollbar">
+                <div>
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+                        <span class="text-xs font-black text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
+                            <i class="fa-solid fa-route text-forest-700"></i> 연수 타임테이블
+                        </span>
+                        <span class="text-[10px] bg-forest-100 text-forest-800 font-extrabold px-2 py-0.5 rounded-md">10.12(월)</span>
+                    </div>
+
+                    <!-- 타임라인 미니 브리핑 -->
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between text-forest-800 font-black mb-0.5">
+                                <span><i class="fa-solid fa-bus mr-1 text-forest-600"></i> 신림중 앞 출발</span>
+                                <span class="text-[11px] text-slate-500">11:00</span>
+                            </div>
+                            <p class="text-slate-600 text-[11px]">1·2호차 분승 탑승, 전원 안전벨트 필수</p>
+                        </div>
+
+                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between text-forest-800 font-black mb-0.5">
+                                <span><i class="fa-solid fa-utensils mr-1 text-amber-600"></i> 명물 닭갈비 점심</span>
+                                <span class="text-[11px] text-slate-500">13:00~14:00</span>
+                            </div>
+                            <p class="text-slate-600 text-[11px]">1인 3만원 예산, 막국수·파전·볶음밥</p>
+                        </div>
+
+                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between text-forest-800 font-black mb-0.5">
+                                <span><i class="fa-solid fa-camera mr-1 text-sky-600"></i> 단체사진 &amp; 자율활동</span>
+                                <span class="text-[11px] text-slate-500">14:00~16:45</span>
+                            </div>
+                            <p class="text-slate-600 text-[11px]">하선 직후 단체사진 ➔ 3355 &amp; 협의회</p>
+                        </div>
+
+                        <div class="p-2.5 bg-amber-50 rounded-xl border border-amber-200 shadow-xs">
+                            <div class="flex items-center justify-between text-amber-900 font-black mb-0.5">
+                                <span><i class="fa-solid fa-clock mr-1 text-amber-600"></i> 복귀 배 탑승</span>
+                                <span class="text-[11px] text-amber-700 font-extrabold">16:45 엄수!</span>
+                            </div>
+                            <p class="text-amber-800 text-[11px]">남이나루 선착장 집결 (17:00 가평 인원점검)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 사이드바 하단: QR & 비상연락망 -->
+                <div class="mt-3 pt-3 border-t border-slate-200">
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3">
+                        <div class="relative cursor-pointer group shrink-0" onclick="openQrModal()" title="클릭하여 QR 크게보기">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAPoCAYAAABNo9TkAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAEZ0FNQQAAsY58+1GTAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAGYJJREFUeNrt2UuKK0kQRcG+Tex/y94avFHBg1KDp+pGmS1AJB6f1CEzL/8AAAAAH/WvEQAAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAACgzDGCfUkMgUfMjPNhxmb88Bw294T3h/vYfyAzdk/gbvtdfEEHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAACAIscIes2MIZRKYgil+9ja9c54a6/ZE93vpbb1s9967wpnGncF3+ELOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAABQ5RsBXSQzhj5kxhNI90bZ2jXutbV/Yx/uz8P7Yn0XbXbG5J9rOh/8U7gp7gu/wBR0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAACKHCMAPmlmVn43SdUcNp93a8bWbncOm7Owds+sH733JsCn+IIOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAB4xzECgM+bmbXfTlL1zJuzsC94Stu5s4f31w7gO3xBBwAAAIEOAAAACHQAAAAQ6AAAAIBABwAAAIEOAAAACHQAAAAQ6AAAAIBABwAAAIEOAAAACHQAAAAQ6AAAAIBABwAAAIEOAAAACHQAAAAQ6AAAAIBABwAAAIEOAAAACHQAAAAQ6AAAAIBABwAAgCLHCPhqZgyBxySp2sdbz9t4pq2d+9gc7rkzrZ39ZsbwM/iCDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAEWOEfRKYgjUm5mq89H2vJvPzP582/axd6m77Ya7zbnzXxM+yRd0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAKHKMYN/MGALgnvimJFUz3npeM7aPPS/OHfw+vqADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAABAkcyLMSwPOVn53a2l23pe9jnO7gn7wt3m/eE+dqadO9wT9PIFHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAA8I5jBPtmZuV3k5jDsq0ZN87CjDvPnT3h3Hnf3bWPrZ3/K/aFPeFdejdf0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAKBI5sUYloecrPzu1tJtPS+9Nq+Jtv3WeGW6g3A+/Kew39yZ9sTv2RN08wUdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAAimRejKF08ZKq593camZhH3PPftvaE86dO9M+du5wt7nb+Ol8QQcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAIAixwh6zUzV8yapm8XWM2/OAufDM5vDbXdm4/q13UFtz9u4do17re1Me/eb8Q18QQcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAALzjGMG+JCu/OzOed1nbM1u73lk4H/tr13hPmEXnHHhm7ew34Ea+oAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAECRzIsxlC5eUvW8m1ttaxZbz2zteHJPWL/Oe6LxrvD+wP1z115r+x/kebmBL+gAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAABQJPNiDMtDTqqet3FLmPHuHOwJbtkX9rG7zX18zx62drjj7bcb+YIOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAAAh0AAAAQ6AAAACDQAQAAAIEOAAAARY4R8FWSld+dGcMtnfHW89oX5uAOst9uXbvG+7ht7dpm0TiHtrPX9v5oPB/epft8QQcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAIAixwh6zYwhWLv6501iFoVzaNzHWzN2F3fvY9xt7bNofEe7N+HvfEEHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAC8I/NiDKWLl6z87taW2HreTW2zaFy7tivIPuaGPeHOdO7sY/wPcgfxM/mCDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAAIdAAAAEOgAAAAg0AEAAACBDgAAAEWOEfCUmVn77SRVv7s1i63nxdo5H5+529yZ3h/t+63xfOCed88705/kCzoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAUOUbQa2ZWfjeJ4S7bmnHjnrDfdtfOM3fP2F3hTHvfWbtPzthd4XzwPF/QAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAoMgxgn1JDGHZzBjC4l7bnG/bMzeeZzOmfcbO3f65azzP7iDa/w82/r9iny/oAAAAINABAAAAgQ4AAAACHQAAABDoAAAAINABAAAAgQ4AAAACHQAAABDoAAAAINABAAAAgQ4AAAACHQAAABDoAAAAINABAAAAgQ4AAAACHQAAABDoAAAAINABAAAAgQ4AAAACHQAAABDoAAAAINABAACAd2RejGF5yIkhlNo6Hlt7wnF2nrnnPDee6ca7zZnuPHfYw/63cStf0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAKBI5sUYShcvWfldW4Kn9hrd567tDrKP7WPn467z0bbf/G/jyXNnX/TyBR0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAACKZF6MoXTxkqrn3dxqbbNonDG425y7T61d4/ujbV94j+6vnRnbE+5jvsMXdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAAChyjGBfkpXfnRlzKLW1dvYa3LWP3Zvm4L2EexN+F1/QAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAoMgxAm4wMyu/m6Tqdxu1zaJtr7U+s+e1dk/MAe8lszBj+Gl8QQcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAALzjGAFPmRnPXCqJIZjFY+dja8aN57ltFs6Hfew9eteesI/heb6gAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAgEAHAAAABDoAAAAIdAAAAECgAwAAQJFjBHyVZOV3Z8Zwl2e8ZXPt2vZb4/lo22/mwA1r553n3JmxfeGe4P/wBR0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAAAEOgAAACDQAQAAQKADAAAAAh0AAACKHCPYNzOel+oZJ7Fo9lv9fmu825y9Xm1r53yYsXvejM34Z/AFHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAIocI9iXxBB4xMxU/a4Zd99BbbMwB+fjhn2x9bz+q/if6X7z/uBn8AUdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAADwjmMEvWbGEEol8bzL+7htxvaxu835cD5uPB/2mv+Dzt1d/6/Y5ws6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAAFDlGwFdJDOGPmTEEa1d/7syi9zy3zaLx/eGe7z13bfvN/ytuOB/uzH2+oAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAIBABwAAAAQ6AAAACHQAAABAoAMAAECRYwTAJyVZ+d2ZMVwzrp9D24y3nndr7ey37rVre2bno/cOarsn6OYLOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAABQ5RgB80sys/G4Sw7UnHrG515yPzj3Rut+snf3mPr5nvv4H9fIFHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAAQ6AAAAINABAABAoAMAAAACHQAAAIocI+CrmTEE7ImLZpyk6ne3ZtH2vJvP3MYces+H/db9LrUves+d/269fEEHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAAIdAAAABDoAAAAgEAHAAAAgQ4AAAC8I/NiDMtDTgyBR2wd58097Apyt7XvCefDnvCf4q53nvPhTDt37uNP8gUdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAABDoAAAAg0AEAAECgAwAAAAIdAAAAimRejAEAAAA+yxd0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAEOgAAACAQAcAAACBDgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAAAh0AAAAQKADAACAQAcAAAAEOgAAALT5D8RY5fUnO3n8AAAAAElFTkSuQmCC" alt="연수 상세정보 QR" class="w-14 h-14 rounded-lg border border-slate-200 group-hover:scale-105 transition shadow-xs object-cover bg-white">
+                            <span class="absolute -bottom-1 -right-1 bg-forest-800 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] shadow-xs">
+                                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            </span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-[10px] font-black text-forest-700 block uppercase">공식 상세자료</span>
+                            <a href="https://app.notion.com/p/_-3e795920bf1d808990fccd8c57019c93?source=copy_link" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-slate-900 hover:text-forest-700 hover:underline truncate block">
+                                노션 안내서 열기 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
+                            <p class="text-[10px] text-slate-400 mt-0.5">QR 탭 시 원본 확대</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 text-[11px] text-slate-500 space-y-0.5">
+                        <div class="font-bold text-slate-700 flex items-center gap-1">
+                            <i class="fa-solid fa-phone text-forest-600"></i> 비상 핫라인
+                        </div>
+                        <div>• 가평군보건소: 031-582-2488</div>
+                        <div>• 가평중앙약국 (031-581-7522)</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 메인 스크린 인터랙션 컨테이너 -->
+            <main class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 flex flex-col justify-between" id="contentArea">
+
+                <!-- 1. HOME SCREEN: 모드 선택 화면 -->
+                <section id="homeScreen" class="flex-1 flex flex-col justify-between max-w-3xl mx-auto w-full py-1">
+                    <div class="text-center my-auto py-2">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest-50 text-forest-800 font-bold text-xs mb-2.5 border border-forest-200">
+                            <i class="fa-solid fa-leaf text-forest-600"></i> 가을 낭만과 안전을 담은 스마트 안내서
+                        </div>
+                        <h1 class="text-2xl lg:text-3xl font-black text-slate-900 leading-tight tracking-tight">
+                            선생님, 남이섬 연수 떠날 준비 되셨나요?<br>
+                            <span class="text-forest-700">미니 게임으로 수칙 &amp; 꿀팁 완전 정복!</span>
+                        </h1>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1.5">원하시는 모드를 선택해 수칙을 즐겁게 확인해보세요.</p>
+                    </div>
+
+                    <!-- 4가지 모드 카드 선택 (버튼 태그 사용으로 포커스 및 터치 반응성 보장) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 my-3">
+                        <!-- Mode 1: MBTI -->
+                        <button type="button" onclick="startMode('mbti')" class="option-card bg-white hover:bg-forest-50/50 p-4 rounded-2xl border border-slate-200/90 shadow-sm text-left flex items-center justify-between group cursor-pointer w-full">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-forest-100 text-forest-800 flex items-center justify-center text-xl group-hover:bg-forest-700 group-hover:text-white transition">
+                                    <i class="fa-solid fa-id-card"></i>
+                                </div>
+                                <div>
+                                    <span class="bg-forest-100 text-forest-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">8문항 • 캐릭터 분석</span>
+                                    <h3 class="font-extrabold text-sm sm:text-base text-slate-900 mt-0.5">연수 MBTI 유형 검사</h3>
+                                    <p class="text-xs text-slate-500">나의 현장 연수 행동 유형과 최적의 역할!</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-forest-700 text-sm"></i>
+                        </button>
+
+                        <!-- Mode 2: Balance -->
+                        <button type="button" onclick="startMode('balance')" class="option-card bg-white hover:bg-amber-50/50 p-4 rounded-2xl border border-slate-200/90 shadow-sm text-left flex items-center justify-between group cursor-pointer w-full">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                </div>
+                                <div>
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">8문항 • 극한 선택</span>
+                                    <h3 class="font-extrabold text-sm sm:text-base text-slate-900 mt-0.5">남이섬 서바이벌 밸런스</h3>
+                                    <p class="text-xs text-slate-500">닭갈비 볶음밥 vs 액티비티! 교사 딜레마</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-amber-600 text-sm"></i>
+                        </button>
+
+                        <!-- Mode 3: Quiz -->
+                        <button type="button" onclick="startMode('quiz')" class="option-card bg-white hover:bg-forest-50/50 p-4 rounded-2xl border border-slate-200/90 shadow-sm text-left flex items-center justify-between group cursor-pointer w-full">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-forest-100 text-forest-800 flex items-center justify-center text-xl group-hover:bg-forest-700 group-hover:text-white transition">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                </div>
+                                <div>
+                                    <span class="bg-forest-100 text-forest-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">8문항 • 상식 퀴즈</span>
+                                    <h3 class="font-extrabold text-sm sm:text-base text-slate-900 mt-0.5">핵심 일정·수칙 장학퀴즈</h3>
+                                    <p class="text-xs text-slate-500">시간, 예산, 비상연락망 점수 100점 도전!</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-forest-700 text-sm"></i>
+                        </button>
+
+                        <!-- Mode 4: World Cup -->
+                        <button type="button" onclick="startMode('worldcup')" class="option-card bg-white hover:bg-amber-50/50 p-4 rounded-2xl border border-slate-200/90 shadow-sm text-left flex items-center justify-between group cursor-pointer w-full">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                                <div>
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">8강 토너먼트</span>
+                                    <h3 class="font-extrabold text-sm sm:text-base text-slate-900 mt-0.5">남이섬 힐링 이상형 월드컵</h3>
+                                    <p class="text-xs text-slate-500">내가 꿈꾸는 최고의 남이섬 힐링 순간은?</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-amber-600 text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- [게임 시작 전] 상세정보 QR코드 & 링크 안내 배너 -->
+                    <div class="bg-gradient-to-r from-forest-50 via-white to-amber-50/40 rounded-2xl p-3.5 sm:p-4 border border-forest-200/80 shadow-xs flex items-center justify-between gap-3 mt-2">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <!-- QR코드 썸네일 (클릭/탭/롱프레스 시 확대) -->
+                            <div class="relative cursor-pointer shrink-0 group" onclick="openQrModal()" title="클릭하여 QR 확대">
+                                <img src="data:image/png;base64,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" alt="연수 상세정보 QR" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-white shadow-sm object-cover bg-white p-0.5 group-hover:scale-105 transition">
+                                <div class="absolute -bottom-1 -right-1 bg-forest-800 text-gold-500 rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-xs">
+                                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                </div>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[10px] font-black text-forest-800 bg-forest-100/90 px-2 py-0.5 rounded-md inline-block mb-1 border border-forest-200">
+                                    📋 공식 연수 상세정보
+                                </span>
+                                <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">노션(Notion) 공식 안내 페이지</h4>
+                                <p class="text-[11px] text-slate-500 hidden sm:block">QR코드를 탭해 확대하거나 링크 버튼으로 바로 확인하세요.</p>
+                                <p class="text-[11px] text-slate-500 sm:hidden">QR 탭: 확대 | 버튼: 바로가기</p>
+                            </div>
+                        </div>
+
+                        <!-- 바로가기 링크 버튼 -->
+                        <a href="https://app.notion.com/p/_-3e795920bf1d808990fccd8c57019c93?source=copy_link" target="_blank" rel="noopener noreferrer" class="shrink-0 bg-forest-800 hover:bg-forest-900 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-xs flex items-center gap-1.5 transition active:scale-95">
+                            <span>열람하기</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 2. GAME SCREEN: 문항 진행 -->
+                <section id="gameScreen" class="hidden-screen flex-1 flex-col justify-between max-w-2xl mx-auto w-full py-1">
+                    <div>
+                        <!-- 진행 상태 바 -->
+                        <div class="mb-3.5">
+                            <div class="flex justify-between items-center text-xs font-bold text-slate-600 mb-1.5">
+                                <span id="gameModeBadge" class="text-forest-800 font-extrabold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-gamepad"></i> 게임 모드
+                                </span>
+                                <span id="gameProgressCounter" class="bg-forest-100 text-forest-800 px-2.5 py-0.5 rounded-full text-xs font-black">Q1 / 8</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                                <div id="gameProgressBar" class="bg-forest-600 h-full w-[12.5%] rounded-full transition-all duration-300"></div>
+                            </div>
+                        </div>
+
+                        <!-- 질문 카드 -->
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 mb-3 relative overflow-hidden">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span id="qBadge" class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-forest-50 text-forest-800 border border-forest-200">
+                                    카테고리
+                                </span>
+                            </div>
+                            <h2 id="qText" class="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                                질문 내용
+                            </h2>
+                        </div>
+
+                        <!-- 선택지 리스트 -->
+                        <div id="gameOptionsContainer" class="space-y-2.5"></div>
+                    </div>
+
+                    <div class="mt-3 text-center">
+                        <p class="text-xs text-slate-400 font-medium">선택 후 유익한 연수 팁이 해설과 함께 제공됩니다.</p>
+                    </div>
+                </section>
+
+                <!-- 3. WORLDCUP SCREEN: 이상형 월드컵 (8강 토너먼트) -->
+                <section id="worldcupScreen" class="hidden-screen flex-1 flex-col justify-between max-w-2xl mx-auto w-full py-1">
+                    <div>
+                        <div class="text-center mb-3">
+                            <span id="worldcupRoundText" class="bg-amber-100 text-amber-800 px-3.5 py-1 rounded-full text-xs font-black border border-amber-200">
+                                🏆 남이섬 힐링 월드컵 (8강)
+                            </span>
+                            <h2 class="text-base sm:text-lg font-black text-slate-800 mt-1.5">오늘 내가 가장 경험하고 싶은 최고의 힐링은?</h2>
+                        </div>
+
+                        <!-- 매치업 2지선다 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 my-2">
+                            <!-- 후보 A -->
+                            <button onclick="selectWorldcupCandidate(0)" class="option-card bg-white hover:bg-forest-50/60 p-4 sm:p-5 rounded-2xl border border-slate-200 hover:border-forest-600 text-left flex flex-col justify-between min-h-[150px] shadow-sm">
+                                <div>
+                                    <div id="wcIconA" class="text-3xl sm:text-4xl mb-2">📸</div>
+                                    <span class="text-[10px] font-bold text-forest-700 uppercase">Option A</span>
+                                    <h3 id="wcTitleA" class="text-sm sm:text-base font-black text-slate-900 leading-snug mt-0.5">후보 A</h3>
+                                </div>
+                                <p id="wcDescA" class="text-xs text-slate-500 mt-2">상세 설명</p>
+                            </button>
+
+                            <!-- 후보 B -->
+                            <button onclick="selectWorldcupCandidate(1)" class="option-card bg-white hover:bg-amber-50/60 p-4 sm:p-5 rounded-2xl border border-slate-200 hover:border-amber-600 text-left flex flex-col justify-between min-h-[150px] shadow-sm">
+                                <div>
+                                    <div id="wcIconB" class="text-3xl sm:text-4xl mb-2">☕</div>
+                                    <span class="text-[10px] font-bold text-amber-700 uppercase">Option B</span>
+                                    <h3 id="wcTitleB" class="text-sm sm:text-base font-black text-slate-900 leading-snug mt-0.5">후보 B</h3>
+                                </div>
+                                <p id="wcDescB" class="text-xs text-slate-500 mt-2">상세 설명</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="goHome()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition mt-3 cursor-pointer">
+                        처음 화면으로 나가기
+                    </button>
+                </section>
+
+                <!-- 4. RESULT SCREEN: 결과 발표 & 종료 후 QR 상세 안내 -->
+                <section id="resultScreen" class="hidden-screen flex-1 flex-col justify-between max-w-xl mx-auto w-full py-1">
+                    <div class="text-center mb-2">
+                        <span id="resultBadge" class="text-xs font-extrabold text-forest-800 bg-forest-100 px-3.5 py-1 rounded-full border border-forest-200">
+                            🎉 결과 발표
+                        </span>
+                        <h2 id="resultMainTitle" class="text-xl sm:text-2xl font-black text-slate-900 mt-1">나의 연수 카드</h2>
+                    </div>
+
+                    <!-- 결과 카드 -->
+                    <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-200 relative overflow-hidden mb-2.5">
+                        <div class="p-3.5 -m-4 sm:-m-5 mb-3 bg-forest-900 text-white rounded-t-2xl sm:rounded-t-3xl flex justify-between items-center">
+                            <div>
+                                <span id="resultSubCode" class="text-xs font-mono font-bold tracking-wider text-gold-500 block">ESTJ</span>
+                                <h3 id="resultCardTitle" class="text-base sm:text-lg font-black leading-tight text-white">결과 타이틀</h3>
+                            </div>
+                            <div id="resultIconBox" class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center text-xl text-gold-500">
+                                <i class="fa-solid fa-award"></i>
+                            </div>
+                        </div>
+
+                        <!-- 지표 바 -->
+                        <div class="flex items-center justify-between text-xs py-2 border-b border-slate-100">
+                            <span id="resultStatLabel" class="text-slate-500 font-semibold">안전 &amp; 규칙 지수</span>
+                            <div class="flex items-center gap-2 font-bold text-forest-800">
+                                <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden">
+                                    <div id="resultScoreBar" class="bg-forest-600 h-full w-full rounded-full"></div>
+                                </div>
+                                <span id="resultScoreText">100%</span>
+                            </div>
+                        </div>
+
+                        <!-- 스타일 설명 -->
+                        <div class="my-2.5 space-y-1">
+                            <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-star text-gold-500"></i> 주요 특성
+                            </span>
+                            <p id="resultCardDesc" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                내용
+                            </p>
+                        </div>
+
+                        <!-- 추천 역할 -->
+                        <div class="bg-forest-50 p-2.5 rounded-xl border border-forest-100 text-xs text-forest-900">
+                            <span class="font-extrabold block mb-0.5 text-forest-800"><i class="fa-solid fa-heart mr-1 text-forest-600"></i> 추천 포지션</span>
+                            <span id="resultAdviceText">팀 내 안전 반장</span>
+                        </div>
+                    </div>
+
+                    <!-- [게임 종료 후] 연수 상세정보 확인 배너 & QR코드 -->
+                    <div class="bg-gradient-to-r from-amber-50/70 via-white to-forest-50/70 rounded-2xl p-3 border border-amber-200/90 shadow-xs flex items-center justify-between gap-3 mb-2.5">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="relative cursor-pointer shrink-0 group" onclick="openQrModal()" title="QR 원본 확대">
+                                <img src="data:image/png;base64,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" alt="연수 상세 QR" class="w-12 h-12 rounded-lg border border-slate-200 group-hover:scale-105 transition shadow-xs bg-white object-cover">
+                                <span class="absolute -bottom-1 -right-1 bg-amber-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[8px]">
+                                    <i class="fa-solid fa-expand"></i>
+                                </span>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-black text-amber-900 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-info text-amber-600"></i> 연수 공식 상세자료
+                                </div>
+                                <div class="text-xs font-extrabold text-slate-900 truncate mt-0.5">상세 일정표 및 공식 계획서</div>
+                                <p class="text-[10px] text-slate-400">QR을 탭하여 확대하거나 링크로 이동</p>
+                            </div>
+                        </div>
+                        <a href="https://app.notion.com/p/_-3e795920bf1d808990fccd8c57019c93?source=copy_link" target="_blank" rel="noopener noreferrer" class="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1">
+                            <span>열기</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </a>
+                    </div>
+
+                    <!-- 액션 버튼 그룹 -->
+                    <div class="space-y-1.5">
+                        <button onclick="shareResult()" class="w-full py-2.5 sm:py-3 bg-forest-800 hover:bg-forest-900 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer">
+                            <i class="fa-solid fa-share-nodes"></i>
+                            <span>내 결과 단톡방에 복사하여 공유하기</span>
+                        </button>
+                        <button onclick="goHome()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
+                            메인 화면으로 돌아가기
+                        </button>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="bg-slate-50 px-5 py-2 text-center text-[10px] text-slate-400 border-t border-slate-100 shrink-0">
+            2026학년도 삼성고등학교 전 교직원 연수 스마트 가이드
+        </footer>
+
+    </div>
+
+    <!-- MODAL 1: 해설 팁 팝업 -->
+    <div id="tipModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl modal-anim border border-slate-200 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-2.5">
+                <span class="text-xs font-black px-3 py-1 rounded-full bg-forest-100 text-forest-800 flex items-center gap-1.5 border border-forest-200">
+                    <i class="fa-solid fa-circle-check text-forest-600"></i> 선택 체크 &amp; 연수 꿀팁
+                </span>
+                <button onclick="closeTipModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold p-1">
+                    &times;
+                </button>
+            </div>
+
+            <div id="selectedChoiceText" class="text-xs text-slate-700 mb-3 p-3 bg-slate-50 rounded-xl border border-slate-100 font-medium">
+                선택한 답변
+            </div>
+
+            <div class="bg-amber-50 rounded-xl p-3.5 border border-amber-200/90 mb-4">
+                <div class="text-xs font-extrabold text-amber-950 mb-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-lightbulb text-amber-600"></i>
+                    <span>선생님을 위한 핵심 연수 가이드</span>
+                </div>
+                <p id="tipExplanationText" class="text-xs text-amber-900 leading-relaxed font-medium">
+                    해설 내용
+                </p>
+            </div>
+
+            <button onclick="nextStep()" class="w-full py-3 bg-forest-800 hover:bg-forest-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>다음으로 넘어가기</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: QR코드 원본 확대 라이트박스 모달 -->
+    <div id="qrLightboxModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm" onclick="closeQrModal(event)">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl modal-anim text-center relative border border-slate-200" onclick="event.stopPropagation()">
+            <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-2xl font-bold w-8 h-8 flex items-center justify-center">
+                &times;
+            </button>
+
+            <span class="text-xs font-black text-forest-800 bg-forest-100 px-3 py-1 rounded-full border border-forest-200 inline-block mb-3">
+                📱 연수 상세정보 QR코드 원본
+            </span>
+
+            <h3 class="font-black text-base text-slate-900">스마트폰 카메라로 스캔하세요</h3>
+            <p class="text-xs text-slate-500 mt-1 mb-4">동료 선생님의 휴대폰 카메라로 바로 스캔하여 확인하실 수 있습니다.</p>
+
+            <!-- 고해상도 QR코드 원본 이미지 -->
+            <div class="bg-white p-3 rounded-2xl border-2 border-forest-100 shadow-md inline-block mb-4">
+                <img src="data:image/png;base64,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" alt="QR코드 원본" class="w-56 h-56 sm:w-64 sm:h-64 object-contain mx-auto block bg-white">
+            </div>
+
+            <!-- 링크 바로가기 버튼 -->
+            <div class="space-y-2">
+                <a href="https://app.notion.com/p/_-3e795920bf1d808990fccd8c57019c93?source=copy_link" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-forest-800 hover:bg-forest-900 text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
+                    <span>웹 브라우저로 직접 바로가기</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                </a>
+                <p class="text-[11px] text-slate-400 font-mono">https://app.notion.com/p/_-3e795920bf1d808990fccd8c57019c93?source=copy_link</p>
+                <button onclick="closeQrModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition cursor-pointer">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: 연수 종합 안내서 요약 -->
+    <div id="infoModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div class="bg-white w-full max-w-lg rounded-2xl p-5 shadow-2xl modal-anim max-h-[85vh] flex flex-col border border-slate-200">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-forest-800 text-gold-500 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-900">남이섬 연수 핵심 종합 가이드</h3>
+                        <p class="text-[10px] text-slate-500">일정·안전·예산 핵심 규칙 요약</p>
+                    </div>
+                </div>
+                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold p-1">&times;</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1 text-xs text-slate-700">
+                <!-- 1. 일정 및 집결 -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <div class="font-old text-slate-900 mb-1 flex items-center gap-1.5 font-bold">
+                        <i class="fa-solid fa-clock text-forest-700"></i> 주요 일정 &amp; 집결 시간
+                    </div>
+                    <ul class="space-y-1 text-[11px] text-slate-600">
+                        <li>• <strong>출발:</strong> 11:00 신림중 앞 버스정류장 (1호차·2호차 분승)</li>
+                        <li>• <strong>점심:</strong> 13:00~14:00 가평 명물닭갈비 (1인 3만원 상당)</li>
+                        <li>• <strong>입도 및 단체촬영:</strong> 14:00 남이섬 선착장 하선 직후 단체 기념사진 촬영!</li>
+                        <li>• <strong class="text-red-700">복귀 배 탑승: 16:45 남이나루 선착장 집결 (시간 엄수!)</strong></li>
+                        <li>• <strong>최종 복귀:</strong> 17:00 가평 선착장 인원점검 후 학교로 출발 (18:30 도착 예정)</li>
+                    </ul>
+                </div>
+
+                <!-- 2. 예산 사용 수칙 -->
+                <div class="bg-forest-50/70 p-3.5 rounded-xl border border-forest-200">
+                    <div class="font-bold text-forest-900 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wallet text-forest-700"></i> 액티비티 &amp; 부서협의회 예산 규칙
+                    </div>
+                    <ul class="space-y-1 text-[11px] text-forest-900">
+                        <li>• <strong>관람 액티비티:</strong> 1인 10,000원 지원 (스토리투어버스 1만원, 나눔열차 4천원, 자전거 1시간 9천원 중 선택 지원, 초과금은 자비 부담)</li>
+                        <li>• <strong>자전거 대여 시:</strong> 바이크센터에서 <u>신분증 제출</u> 필수!</li>
+                        <li>• <strong>부서 협의회비:</strong> 1인 17,000원 <u>남이섬 섬 내 식당 및 카페에서만 사용 가능</u> (외부 이월 불가)</li>
+                    </ul>
+                </div>
+
+                <!-- 3. 3355 프로젝트 -->
+                <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-200">
+                    <div class="font-bold text-amber-950 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-camera text-amber-700"></i> 3355 (삼삼오오) 사진 콘테스트
+                    </div>
+                    <p class="text-[11px] text-amber-900">
+                        소그룹(3~5인)으로 탐방하며 촬영한 멋진 사진에 <strong>센스 넘치는 '제목'</strong>을 달아 제출!<br>
+                        🥇 1등 팀: 200,000원 상당 식사권 / 🥈 2등 팀: 150,000원 상당 식사권
+                    </p>
+                </div>
+
+                <!-- 4. 안전 및 비상연락 -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-forest-700"></i> 안전 관리 &amp; 응급 핫라인
+                    </div>
+                    <ul class="space-y-1 text-[11px] text-slate-600">
+                        <li>• 버스 탑승 즉시 전원 안전벨트 착용 및 소화기·비상탈출 망치 위치 확인</li>
+                        <li>• 배 승선 시 선착장 질서 준수 및 구명장비 위치 확인</li>
+                        <li>• 가평군보건소: 031-582-2488 / 가평중앙약국: 031-581-7522</li>
+                        <li>• 돌발 사고 발생 시 연수 총괄 책임자에게 즉시 보고</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-3 pt-2 border-t border-slate-100">
+                <button onclick="toggleInfoModal()" class="w-full py-2.5 bg-forest-800 hover:bg-forest-900 text-white font-bold text-xs rounded-xl transition cursor-pointer">
+                    확인 완료 (닫기)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* AudioContext 지연 생성 (브라우저 정책 호환) */
+        let audioCtx = null;
+        function playSfx(type) {
+            try {
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        audioCtx = new AudioContext();
+                    }
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'tap') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.06);
+                } else if (type === 'win') {
+                    const now = audioCtx.currentTime;
+                    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(f, now + i * 0.07);
+                        g.gain.setValueAtTime(0.08, now + i * 0.07);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.25);
+                        o.start(now + i * 0.07);
+                        o.stop(now + i * 0.07 + 0.25);
+                    });
+                }
+            } catch (e) {
+                console.log('Audio disabled or not supported');
+            }
+        }
+
+        /* MBTI 질문 데이터 */
+        const mbtiQuestions = [
+            {
+                badge: "🚌 섹션 1: 출발 & 탑승",
+                question: "Q1. 11:00 연수 출발 당일, 나의 출발 정거장 앞 모습은?",
+                tip: "출발 장소는 11:00 신림중 앞 버스정류장입니다. 1호차와 2호차 지정 배차를 확인하고 탑승 즉시 안전벨트를 매야 합니다!",
+                options: [
+                    { text: "A. 10시 50분에 도착해 동료 선생님들 탑승 체크하고 안전벨트 바로 착용!", mbti: "ESTJ", safety: true },
+                    { text: "B. 버스에 오르자마자 옆자리 짝꿍 선생님과 수다 떨며 가방 속 간식 대방출!", mbti: "ESFP", safety: true },
+                    { text: "C. 창가 자리 잡고 에어팟 꽂은 채 가을 플레이리스트 들으며 멍때리기.", mbti: "ISFP", safety: true },
+                    { text: "D. 10시 59분에 전력 질주로 슬라이딩 탑승하며 극적인 스릴 즐기기.", mbti: "ENTP", safety: false }
+                ]
+            },
+            {
+                badge: "🚌 섹션 1: 버스 안전",
+                question: "Q2. 버스가 고속도로를 달릴 때 안전 수칙의 정석은?",
+                tip: "운행 중 좌석 이동은 금지되며, 차량 내 소화기 및 비상탈출 망치 위치를 사전 숙지해야 합니다.",
+                options: [
+                    { text: "A. 안전벨트 딱 맞게 조이고 비상탈출용 망치 위치를 눈여겨본다.", mbti: "ESTJ", safety: true },
+                    { text: "B. 기사님께 버스 안에서 블루투스 마이크 켜도 되냐고 물어본다.", mbti: "ESFP", safety: false },
+                    { text: "C. 옆자리 선생님 어깨에 기대어 조용히 꿀잠을 청한다.", mbti: "ISFP", safety: true },
+                    { text: "D. 버스 복도에 서서 학년부 깜짝 회의를 열려고 시도한다.", mbti: "ENFP", safety: false }
+                ]
+            },
+            {
+                badge: "🍗 섹션 2: 닭갈비 점심",
+                question: "Q3. 가평 명물닭갈비 집(1인 3만원 예산)에서의 나의 주문 철학은?",
+                tip: "1인당 25,000~30,000원 예산 내에서 닭갈비, 막국수, 해물파전, 볶음밥 등을 조화롭게 주문합니다.",
+                options: [
+                    { text: "A. 닭갈비+감자전+막국수+볶음밥 조합을 1인 3만원에 오차 없이 계산해 주문!", mbti: "ESTJ", safety: true },
+                    { text: "B. 고기는 볶음밥을 먹기 위한 빌드업일 뿐, 치즈 볶음밥에 올인한다.", mbti: "ISFP", safety: true },
+                    { text: "C. 옆 테이블 파전이랑 우리 테이블 도토리묵 교환 협상을 체결한다.", mbti: "ESFP", safety: true },
+                    { text: "D. 떡사리 10개 추가하고 초과금은 옆 부장님 찬스를 엿본다.", mbti: "ENTP", safety: false }
+                ]
+            },
+            {
+                badge: "🚢 섹션 2: 도선 승선 & 기념촬영",
+                question: "Q4. 가평 선착장에서 배를 타고 남이섬에 도착한 순간, 첫 행동은?",
+                tip: "하선 직후 전 교직원 단체 기념사진 촬영이 예정되어 있으므로 대열에서 이탈하지 않아야 합니다!",
+                options: [
+                    { text: "A. 하선 후 신속하게 단체 기념촬영 장소로 이동해 줄을 맞춘다.", mbti: "ESTJ", safety: true },
+                    { text: "B. 배 2층 갑판에서 갈매기와 아이컨택하며 바람에 흩날리는 셀카 50장 촬영.", mbti: "ENFP", safety: true },
+                    { text: "C. 인파를 피해 조용히 그늘진 벤치로 가서 심호흡을 한다.", mbti: "ISFP", safety: true },
+                    { text: "D. 기념촬영이고 뭐고 먼저 타조 보러 뛰어가려다 부장님 손에 잡힌다.", mbti: "ENTP", safety: false }
+                ]
+            },
+            {
+                badge: "🚲 섹션 3: 액티비티 선택",
+                question: "Q5. 1만 원 지원금으로 즐길 수 있는 섬 내 이동수단 선택은?",
+                tip: "스토리투어버스(1만원), 나눔열차(4천원), 자전거(1시간 9천원) 중 선택 가능하며 자전거 대여 시 신분증 제출 필수!",
+                options: [
+                    { text: "A. 신분증 제출하고 싱글 자전거 빌려서 은행나무길을 힘차게 질주한다.", mbti: "ENTP", safety: true },
+                    { text: "B. 걷는 건 질색! 1만원 딱 맞춰 무정차 스토리투어버스 타고 편하게 한 바퀴.", mbti: "ESTJ", safety: true },
+                    { text: "C. 옛 감성 느끼며 4,000원 나눔열차 타고 중앙역까지 여유롭게 이동.", mbti: "ISFP", safety: true },
+                    { text: "D. 반자동 이지바이크 타고 신나게 놀다가 30분 초과되어 자비 탕진.", mbti: "ENFP", safety: false }
+                ]
+            },
+            {
+                badge: "☕ 섹션 4: 부서 협의회비",
+                question: "Q6. 1인 17,000원의 부서 협의회비 카드 사용 시 바른 행동은?",
+                tip: "협의회비는 남이섬 섬 내 식당 및 카페에서만 사용 가능하며, 외부나 학교 앞으로 이월 사용할 수 없습니다.",
+                options: [
+                    { text: "A. 스윙카페 북한강 뷰 테라스에서 커피와 베이커리를 즐기며 업무 나눔!", mbti: "ISFP", safety: true },
+                    { text: "B. 소나타카페에서 눈사람호떡빙수와 씨앗호떡을 부서원들과 사이좋게 나눠 먹기.", mbti: "ESFP", safety: true },
+                    { text: "C. '이 돈 아껴서 내일 학교 앞 호프집에서 2차 협의회 합시다!' (불가)", mbti: "ENFP", safety: false },
+                    { text: "D. 티하우스 차담에서 고급 차를 마시며 고교학점제 혁신 방안을 진지하게 토론.", mbti: "ESTJ", safety: true }
+                ]
+            },
+            {
+                badge: "📸 섹션 5: 3355 프로젝트",
+                question: "Q7. 상금 20만 원이 걸린 '3355 소그룹 사진 콘테스트' 출품 전략은?",
+                tip: "3~5인이 팀을 이뤄 촬영하고, 반드시 센스 있는 제목을 달아야 심사 대상이 됩니다!",
+                options: [
+                    { text: "A. 감각적인 구도 + '가을, 낙엽, 그리고 고교학점제의 고뇌' 서정적 제목 달기.", mbti: "ISFP", safety: true },
+                    { text: "B. 역동적인 공중 점프샷 찍고 '삼성고 연구부 공중부양의 날'로 출품!", mbti: "ENFP", safety: true },
+                    { text: "C. 심사위원(관리자) 취향을 저격하는 정갈하고 화목한 단체 포즈 연출.", mbti: "ESTJ", safety: true },
+                    { text: "D. 사진은 열심히 찍었는데 마감 시간까지 제목 안 정해서 제출 못 함.", mbti: "ENTP", safety: false }
+                ]
+            },
+            {
+                badge: "⏰ 섹션 6: 마감 & 복귀",
+                question: "Q8. 시계 바늘이 16시 40분을 가리킬 때 나의 위치는?",
+                tip: "16:45 남이나루 선착장 집결(16:45 배 탑승)은 절대 시간 엄수입니다! 17:00 가평 인원점검 후 복귀합니다.",
+                options: [
+                    { text: "A. 16:35에 선착장 도착해 부서원들 인원 파악하며 대기 중!", mbti: "ESTJ", safety: true },
+                    { text: "B. 배 타기 1분 전(16:44) 땀 흘리며 선착장 개찰구로 슬라이딩 골인!", mbti: "ENTP", safety: false },
+                    { text: "C. '섬이 너무 예쁜데 그냥 하룻밤 자고 내일 출근하면 안 되나요?'", mbti: "ENFP", safety: false },
+                    { text: "D. 조용히 기념엽서 쓰다가 16시 42분에 부장님 전화 받고 전력 질주.", mbti: "ISFP", safety: false }
+                ]
+            }
+        ];
+
+        /* 2. 밸런스 게임 데이터 (8문항) */
+        const balanceQuestions = [
+            {
+                badge: "🚌 이동 밸런스",
+                question: "연수 버스 탑승 시 내가 선호하는 자리 스타일은?",
+                tip: "탑승 즉시 전원 안전벨트 착용은 공통 필수 수칙입니다!",
+                options: [
+                    { text: "A. 맨 앞자리에서 기사님과 교통 상황을 함께 주시하는 안심파", type: "A" },
+                    { text: "B. 창가 자리에서 이어폰 꽂고 풍경을 감상하는 힐링파", type: "B" }
+                ]
+            },
+            {
+                badge: "🍗 닭갈비 밸런스",
+                question: "1인 3만원 예산의 닭갈비집! 최고의 K-디저트는?",
+                tip: "1인당 25,000~30,000원 예산 내에서 자유롭게 식사합니다.",
+                options: [
+                    { text: "A. 바닥까지 싹싹 긁어먹는 고소한 '날치알 치즈 볶음밥'", type: "A" },
+                    { text: "B. 살얼음 동동 띄운 매콤새콤 '시원한 쟁반 막국수'", type: "B" }
+                ]
+            },
+            {
+                badge: "🚢 승선 밸런스",
+                question: "남이섬 들어가는 배 위에서의 나의 포지션은?",
+                tip: "도선 승선 시 비상 구명설비 위치를 확인해주세요.",
+                options: [
+                    { text: "A. 2층 갑판 난간에서 가을 강바람과 갈매기를 느끼는 낭만파", type: "A" },
+                    { text: "B. 1층 실내 안락한 의자에 앉아 체력을 비축하는 실속파", type: "B" }
+                ]
+            },
+            {
+                badge: "🚲 이동수단 밸런스",
+                question: "남이섬 섬 내 탐방 수단, 나의 선택은?",
+                tip: "스토리투어버스(1만원), 나눔열차(4천원), 자전거(1시간 9천원) 중 선택 지원됩니다.",
+                options: [
+                    { text: "A. 신분증 맡기고 시원하게 페달 밟는 '자전거 라이딩'", type: "A" },
+                    { text: "B. 편안하게 해설 들으며 관람하는 '무정차 스토리투어버스'", type: "B" }
+                ]
+            },
+            {
+                badge: "☕ 카페 힐링 밸런스",
+                question: "부서 협의회비 17,000원으로 즐길 디저트 명소는?",
+                tip: "협의회비는 섬 내 카페 및 식당에서만 사용할 수 있습니다.",
+                options: [
+                    { text: "A. 북한강 통창 뷰가 일품인 '스윙카페 베이커리 & 라떼'", type: "A" },
+                    { text: "B. 남이섬 명물 '소나타카페 눈사람호떡 & 찹쌀씨앗호떡'", type: "B" }
+                ]
+            },
+            {
+                badge: "📸 사진 콘테스트 밸런스",
+                question: "상금 20만 원이 걸린 3355 단체사진 컨셉은?",
+                tip: "3~5인 그룹의 센스 있는 사진과 제목이 필수입니다.",
+                options: [
+                    { text: "A. 단풍과 은행잎을 던지며 찍는 '가을 청춘 영화 컨셉'", type: "A" },
+                    { text: "B. 선생님들의 연기력이 폭발하는 '유쾌한 코믹 짤방 컨셉'", type: "B" }
+                ]
+            },
+            {
+                badge: "⏰ 집결 스타일 밸런스",
+                question: "16:45 남이나루 선착장 집결 시 나의 도착 시간은?",
+                tip: "16:45 배를 놓치면 다음 배까지 큰 차질이 생깁니다!",
+                options: [
+                    { text: "A. 16:30에 선착장 도착해 1등으로 여유롭게 줄 서기", type: "A" },
+                    { text: "B. 16:43까지 알차게 단풍 구경하다 정시에 맞춰 탑승하기", type: "B" }
+                ]
+            },
+            {
+                badge: "🏠 귀교 후 밸런스",
+                question: "18:30 학교 복귀 및 해산 후 나의 퇴근 플랜은?",
+                tip: "안전하고 보람찬 연수의 마무리는 편안한 휴식입니다.",
+                options: [
+                    { text: "A. 동료 교사들과 학교 앞 맛집에서 연수 소감 나누기", type: "A" },
+                    { text: "B. 칼퇴 후 따뜻한 물로 샤워하고 침대 속으로 다이빙", type: "B" }
+                ]
+            }
+        ];
+
+        /* 3. 퀴즈 데이터 (8문항) */
+        const quizQuestions = [
+            {
+                badge: "🚌 출발 시각 & 장소",
+                question: "Q1. 이번 연수의 버스 출발 시각과 장소로 올바른 것은?",
+                options: [
+                    { text: "11:00 신림중 앞 버스정류장", isCorrect: true },
+                    { text: "09:00 교내 운동장", isCorrect: false },
+                    { text: "12:00 가평역 앞", isCorrect: false },
+                    { text: "10:30 서울역 광장", isCorrect: false }
+                ],
+                tip: "출발은 11:00 신림중 앞 버스정류장에서 버스 1호차와 2호차로 이동합니다."
+            },
+            {
+                badge: "🍗 점심 식사",
+                question: "Q2. 중식 장소인 '가평 명물닭갈비'의 1인당 배정 예산 기준은?",
+                options: [
+                    { text: "10,000원", isCorrect: false },
+                    { text: "25,000원 ~ 30,000원", isCorrect: true },
+                    { text: "50,000원", isCorrect: false },
+                    { text: "무제한", isCorrect: false }
+                ],
+                tip: "점심 닭갈비 예산은 1인당 25,000원 ~ 30,000원으로 책정되어 있습니다."
+            },
+            {
+                badge: "🚲 자전거 대여",
+                question: "Q3. 남이섬 바이크센터에서 자전거를 대여할 때 필수로 제출해야 하는 것은?",
+                options: [
+                    { text: "교직원증", isCorrect: false },
+                    { text: "신분증 (주민등록증/운전면허증)", isCorrect: true },
+                    { text: "차 키", isCorrect: false },
+                    { text: "신용카드", isCorrect: false }
+                ],
+                tip: "자전거 대여 시 신분증 제출 후 대여표를 수령해야 합니다."
+            },
+            {
+                badge: "☕ 부서 협의회비",
+                question: "Q4. 부서 협의회비(1인 17,000원)의 올바른 사용 원칙은?",
+                options: [
+                    { text: "남이섬 섬 내 식당 및 카페에서 사용", isCorrect: true },
+                    { text: "다음 주 교무실 간식비로 이월 적립", isCorrect: false },
+                    { text: "학교 앞 치킨집에서 사후 사용", isCorrect: false },
+                    { text: "현금으로 환불 수령", isCorrect: false }
+                ],
+                tip: "부서 협의회비는 남이섬 섬 내 매장에서 당일 사용하는 것이 규정입니다."
+            },
+            {
+                badge: "📸 3355 콘테스트",
+                question: "Q5. 3355 사진 콘테스트에서 1등 팀에게 수여되는 상금(식사권)은?",
+                options: [
+                    { text: "100,000원", isCorrect: false },
+                    { text: "200,000원 상당 식사권", isCorrect: true },
+                    { text: "50,000원", isCorrect: false },
+                    { text: "문화상품권 3만원", isCorrect: false }
+                ],
+                tip: "3355 프로젝트 1등은 200,000원, 2등은 150,000원 상당 식사권이 수여됩니다."
+            },
+            {
+                badge: "⏰ 복귀 시간",
+                question: "Q6. 남이나루 선착장에 집결하여 복귀 배를 탑승해야 하는 정규 시각은?",
+                options: [
+                    { text: "16:00", isCorrect: false },
+                    { text: "16:45 (시간엄수)", isCorrect: true },
+                    { text: "17:30", isCorrect: false },
+                    { text: "18:00", isCorrect: false }
+                ],
+                tip: "16:45까지 남이나루 선착장 집결 후 배에 탑승해야 17:00 가평 인원점검이 가능합니다."
+            },
+            {
+                badge: "🏥 응급 비상연락",
+                question: "Q7. 남이섬 인근 보건기관인 '가평군보건소'의 전화번호는?",
+                options: [
+                    { text: "031-582-2488", isCorrect: true },
+                    { text: "1588-2504", isCorrect: false },
+                    { text: "02-120", isCorrect: false },
+                    { text: "114", isCorrect: false }
+                ],
+                tip: "가평군보건소 대표번호는 031-582-2488, 가평중앙약국은 031-581-7522입니다."
+            },
+            {
+                badge: "🚌 차량 안전",
+                question: "Q8. 대절 버스 탑승 즉시 전 교직원이 반드시 취해야 할 최우선 행동은?",
+                options: [
+                    { text: "휴대폰 충전하기", isCorrect: false },
+                    { text: "안전벨트 전원 착용", isCorrect: true },
+                    { text: "의자 뒤로 끝까지 젖히기", isCorrect: false },
+                    { text: "간식 개봉하기", isCorrect: false }
+                ],
+                tip: "버스 탑승 즉시 전원 안전벨트 착용 확인이 가장 중요한 수칙입니다."
+            }
+        ];
+
+        /* 4. 이상형 월드컵 8강 후보 */
+        const worldcupCandidates = [
+            { name: "메타세쿼이아길 단풍 인생샷", desc: "단풍 숲길에서 부서원들과 3355 레전드 사진 남기기", icon: "📸" },
+            { name: "북한강 뷰 스윙카페 커피 & 빵", desc: "강변 통창에 앉아 즐기는 따뜻한 라떼와 갓 구운 베이커리", icon: "☕" },
+            { name: "가평 명물 닭갈비 & 치즈볶음밥", desc: "가평 도착 후 즐기는 매콤달콤 닭갈비와 볶음밥의 향연", icon: "🍗" },
+            { name: "가을바람 싱글 자전거 질주", desc: "바이크센터에서 자전거 빌려 강변 코스를 시원하게 라이딩", icon: "🚲" },
+            { name: "추억의 나눔열차 편도 낭만", desc: "옛 추억을 소환하며 중앙역까지 편안하게 경치 감상", icon: "🚂" },
+            { name: "소나타카페 눈사람호떡 & 디저트", desc: "남이섬의 상징! 갓 구운 달콤한 찹쌀씨앗호떡 한입", icon: "⛄" },
+            { name: "안락한 스토리투어버스 일주", desc: "다리 아플 틈 없이 친절한 해설과 함께 섬 전체를 편안하게 순회", icon: "🚌" },
+            { name: "16:45 칼퇴 승선 & 노을 힐링", desc: "시간 엄수 1등으로 배 타고 가평 선착장으로 노을 보며 귀환", icon: "⛴️" }
+        ];
+
+        /* MBTI 페르소나 */
+        const personas = {
+            "ESTJ": {
+                code: "ESTJ형",
+                title: "걸어 다니는 연구부장",
+                icon: "fa-clipboard-check",
+                desc: "안전벨트 1초 컷! 16시 35분 선착장 맨 앞 대기! 예산 1원 단위 칼맞춤. 선생님이 계시기에 삼성고 연수는 무사고 100%입니다.",
+                role: "팀 내 '안전반장' 및 '예산 총괄 수호신'"
+            },
+            "ENFP": {
+                code: "ENFP형",
+                title: "3355 포토제닉 헌터",
+                icon: "fa-camera-retro",
+                desc: "사진만 400장 찰칵! 1등 상금(20만 원)은 이미 우리 부서 것! 비타민 같은 에너지로 동료들의 텐션을 끌어올립니다.",
+                role: "연수 단톡방 분위기 메이커 & 3355 연출 감독"
+            },
+            "ISFP": {
+                code: "ISFP형",
+                title: "리버뷰 물멍 베이커리 요정",
+                icon: "fa-mug-hot",
+                desc: "자전거는 다리 아파요... 스윙카페 북한강 통창 명당 잡고 따뜻한 라떼 마시며 마음의 평화를 찾는 진정한 힐링 마스터.",
+                role: "지친 동료 교사의 쉼표가 되어주는 힐링 상담사"
+            },
+            "ENTP": {
+                code: "ENTP형",
+                title: "남이섬 폭주 라이더",
+                icon: "fa-bicycle",
+                desc: "1만 원 지원금으로 신분증 맡기고 싱글 자전거로 남이섬 구석구석을 누비는 탐험가! 스릴과 유머를 달고 다닙니다.",
+                role: "남이섬 숨은 명소 발굴단장"
+            },
+            "ESFP": {
+                code: "ESFP형",
+                title: "닭갈비 파전 트레이더",
+                icon: "fa-utensils",
+                desc: ""옆 테이블 막국수랑 우리 테이블 해물파전 반반 나누실 분?" 맛있는 음식과 나눔으로 회식 자리를 지배하는 미식가.",
+                role: "부서 회식 메뉴 조율 및 친목 도모 리더"
+            }
+        };
+
+        let currentMode = 'mbti';
+        let currentQIndex = 0;
+        let mbtiScores = { ESTJ: 0, ENFP: 0, ISFP: 0, ENTP: 0, ESFP: 0 };
+        let safetyScore = 0;
+        let quizCorrectCount = 0;
+
+        let wcRoundList = [];
+        let wcNextRoundList = [];
+        let wcMatchIndex = 0;
+
+        function showScreen(screenId) {
+            const screens = ['homeScreen', 'gameScreen', 'worldcupScreen', 'resultScreen'];
+            for (let i = 0; i < screens.length; i++) {
+                const id = screens[i];
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === screenId) {
+                        el.classList.remove('hidden-screen');
+                        el.style.display = 'flex';
+                    } else {
+                        el.classList.add('hidden-screen');
+                        el.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function goHome() {
+            playSfx('tap');
+            showScreen('homeScreen');
+        }
+
+        function startMode(mode) {
+            playSfx('tap');
+            currentMode = mode;
+            currentQIndex = 0;
+            mbtiScores = { ESTJ: 0, ENFP: 0, ISFP: 0, ENTP: 0, ESFP: 0 };
+            safetyScore = 0;
+            quizCorrectCount = 0;
+
+            if (mode === 'worldcup') {
+                showScreen('worldcupScreen');
+                initWorldcup();
+            } else {
+                showScreen('gameScreen');
+                renderGameQuestion();
+            }
+        }
+
+        function renderGameQuestion() {
+            let dataSet = (currentMode === 'mbti') ? mbtiQuestions : (currentMode === 'balance') ? balanceQuestions : quizQuestions;
+            let modeTitle = (currentMode === 'mbti') ? '<i class="fa-solid fa-id-card text-forest-700"></i> 연수 MBTI 검사' :
+                            (currentMode === 'balance') ? '<i class="fa-solid fa-scale-balanced text-amber-600"></i> 서바이벌 밸런스' :
+                            '<i class="fa-solid fa-circle-question text-forest-700"></i> 일정·수칙 장학퀴즈';
+
+            const q = dataSet[currentQIndex];
+
+            document.getElementById('gameModeBadge').innerHTML = modeTitle;
+            document.getElementById('gameProgressCounter').innerText = `Q${currentQIndex + 1} / ${dataSet.length}`;
+            const pct = ((currentQIndex + 1) / dataSet.length) * 100;
+            document.getElementById('gameProgressBar').style.width = `${pct}%`;
+
+            document.getElementById('qBadge').innerText = q.badge;
+            document.getElementById('qText').innerText = q.question;
+
+            const container = document.getElementById('gameOptionsContainer');
+            container.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = "option-card w-full text-left p-3.5 sm:p-4 rounded-xl border border-slate-200 bg-white hover:border-forest-600 hover:bg-forest-50/50 shadow-xs flex items-start space-x-3 text-xs sm:text-sm text-slate-800 font-semibold leading-relaxed cursor-pointer";
+                btn.onclick = () => selectOption(opt, q);
+
+                const label = String.fromCharCode(65 + idx);
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-lg bg-forest-100 text-forest-800 font-black text-xs flex items-center justify-center shrink-0 mt-0.5 border border-forest-200">
+                        ${label}
+                    </span>
+                    <span class="flex-1">${opt.text}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectOption(option, question) {
+            playSfx('tap');
+
+            if (currentMode === 'mbti') {
+                if (mbtiScores[option.mbti] !== undefined) mbtiScores[option.mbti]++;
+                if (option.safety) safetyScore++;
+            } else if (currentMode === 'quiz') {
+                if (option.isCorrect) quizCorrectCount++;
+            }
+
+            document.getElementById('selectedChoiceText').innerHTML = `<span class="font-bold text-slate-900">선택:</span> ${option.text}`;
+            document.getElementById('tipExplanationText').innerHTML = question.tip;
+            document.getElementById('tipModal').classList.remove('hidden');
+        }
+
+        function closeTipModal() {
+            playSfx('tap');
+            document.getElementById('tipModal').classList.add('hidden');
+        }
+
+        function nextStep() {
+            closeTipModal();
+            currentQIndex++;
+            let dataSet = (currentMode === 'mbti') ? mbtiQuestions : (currentMode === 'balance') ? balanceQuestions : quizQuestions;
+
+            if (currentQIndex < dataSet.length) {
+                renderGameQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        /* 이상형 월드컵 8강 */
+        function initWorldcup() {
+            wcRoundList = [...worldcupCandidates].sort(() => Math.random() - 0.5);
+            wcNextRoundList = [];
+            wcMatchIndex = 0;
+            renderWorldcupMatch();
+        }
+
+        function renderWorldcupMatch() {
+            const roundTitle = wcRoundList.length === 8 ? "8강" : wcRoundList.length === 4 ? "준결승 (4강)" : "결승전 (FINAL)";
+            document.getElementById('worldcupRoundText').innerText = `🏆 남이섬 힐링 월드컵 (${roundTitle} ${wcMatchIndex + 1}/${wcRoundList.length / 2})`;
+
+            const candA = wcRoundList[wcMatchIndex * 2];
+            const candB = wcRoundList[wcMatchIndex * 2 + 1];
+
+            document.getElementById('wcIconA').innerText = candA.icon;
+            document.getElementById('wcTitleA').innerText = candA.name;
+            document.getElementById('wcDescA').innerText = candA.desc;
+
+            document.getElementById('wcIconB').innerText = candB.icon;
+            document.getElementById('wcTitleB').innerText = candB.name;
+            document.getElementById('wcDescB').innerText = candB.desc;
+        }
+
+        function selectWorldcupCandidate(choiceIdx) {
+            playSfx('tap');
+            const winner = wcRoundList[wcMatchIndex * 2 + choiceIdx];
+            wcNextRoundList.push(winner);
+            wcMatchIndex++;
+
+            if (wcMatchIndex * 2 >= wcRoundList.length) {
+                if (wcNextRoundList.length === 1) {
+                    finishWorldcup(wcNextRoundList[0]);
+                } else {
+                    wcRoundList = [...wcNextRoundList];
+                    wcNextRoundList = [];
+                    wcMatchIndex = 0;
+                    renderWorldcupMatch();
+                }
+            } else {
+                renderWorldcupMatch();
+            }
+        }
+
+        function finishWorldcup(winner) {
+            playSfx('win');
+            try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch (e) {}
+
+            showScreen('resultScreen');
+
+            document.getElementById('resultBadge').innerText = "🏆 이상형 월드컵 1위";
+            document.getElementById('resultMainTitle').innerText = "내가 꿈꾸는 남이섬 최고의 순간";
+
+            document.getElementById('resultSubCode').innerText = "힐링 챔피언";
+            document.getElementById('resultCardTitle').innerText = winner.name;
+            document.getElementById('resultCardDesc').innerText = winner.desc;
+
+            document.getElementById('resultStatLabel').innerText = "취향 매칭도";
+            document.getElementById('resultScoreText').innerText = "100%";
+            document.getElementById('resultScoreBar').style.width = "100%";
+
+            document.getElementById('resultAdviceText').innerText = `이번 연수에서 ${winner.name}을(를) 꼭 만끽해보세요!`;
+            document.getElementById('resultIconBox').innerHTML = `<span class="text-3xl">${winner.icon}</span>`;
+        }
+
+        /* 결과 화면 생성 */
+        function finishGame() {
+            playSfx('win');
+            try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch (e) {}
+
+            showScreen('resultScreen');
+
+            if (currentMode === 'mbti') {
+                let best = "ESTJ";
+                let topVal = -1;
+                for (const [k, v] of Object.entries(mbtiScores)) {
+                    if (v > topVal) { topVal = v; best = k; }
+                }
+                const p = personas[best] || personas["ESTJ"];
+                const sPct = Math.round((safetyScore / mbtiQuestions.length) * 100);
+
+                document.getElementById('resultBadge').innerText = "🎉 MBTI 연수 캐릭터 분석";
+                document.getElementById('resultMainTitle').innerText = "나의 현장 연수 프로필";
+                document.getElementById('resultSubCode').innerText = p.code;
+                document.getElementById('resultCardTitle').innerText = p.title;
+                document.getElementById('resultCardDesc').innerText = p.desc;
+                document.getElementById('resultAdviceText').innerText = p.role;
+                document.getElementById('resultIconBox').innerHTML = `<i class="fa-solid ${p.icon}"></i>`;
+
+                document.getElementById('resultStatLabel').innerText = "안전 & 수칙 지수";
+                document.getElementById('resultScoreText').innerText = `${sPct}%`;
+                document.getElementById('resultScoreBar').style.width = `${sPct}%`;
+
+            } else if (currentMode === 'balance') {
+                document.getElementById('resultBadge').innerText = "⚖️ 밸런스 선택 완료";
+                document.getElementById('resultMainTitle').innerText = "나만의 맞춤 연수 플랜";
+                document.getElementById('resultSubCode').innerText = "BALANCE MASTER";
+                document.getElementById('resultCardTitle').innerText = "센스 만점 자유 힐링파";
+                document.getElementById('resultCardDesc').innerText = "선생님의 감각적인 선택이 돋보였습니다. 안전 수칙과 16:45 선착장 집결만 잘 지키시면 이번 연수는 100점 만점입니다!";
+                document.getElementById('resultAdviceText').innerText = "동료 교사들과 밸런스 선택지를 공유하고 점심 메뉴를 맞춰보세요.";
+                document.getElementById('resultIconBox').innerHTML = `<i class="fa-solid fa-scale-balanced"></i>`;
+
+                document.getElementById('resultStatLabel').innerText = "힐링 만족도";
+                document.getElementById('resultScoreText').innerText = "100%";
+                document.getElementById('resultScoreBar').style.width = "100%";
+
+            } else if (currentMode === 'quiz') {
+                const qPct = Math.round((quizCorrectCount / quizQuestions.length) * 100);
+                document.getElementById('resultBadge').innerText = "📝 연수 상식 채점 완료";
+                document.getElementById('resultMainTitle').innerText = `내 점수는 ${qPct}점!`;
+                document.getElementById('resultSubCode').innerText = `${quizCorrectCount} / ${quizQuestions.length} 문제 정답`;
+
+                if (qPct >= 80) {
+                    document.getElementById('resultCardTitle').innerText = "🥇 남이섬 연수 박사 선생님";
+                    document.getElementById('resultCardDesc').innerText = "완벽합니다! 출발 시간, 예산, 비상연락처, 16:45 집결까지 완벽히 꿰뚫고 계시네요. 부서의 든든한 리더가 되어주세요!";
+                } else {
+                    document.getElementById('resultCardTitle').innerText = "🥈 연수 수칙 복습 필요 교사";
+                    document.getElementById('resultCardDesc').innerText = "몇 가지 핵심 규칙을 놓치셨어요! 상단 [핵심 요약] 버튼을 눌러 16:45 집결 시간과 예산 규칙을 한 번 더 확인해보세요.";
+                }
+
+                document.getElementById('resultAdviceText').innerText = "우측 상단 '핵심 요약'에서 전체 일정을 언제든 다시 보실 수 있습니다.";
+                document.getElementById('resultIconBox').innerHTML = `<i class="fa-solid fa-award"></i>`;
+
+                document.getElementById('resultStatLabel').innerText = "수칙 숙지도";
+                document.getElementById('resultScoreText').innerText = `${qPct}%`;
+                document.getElementById('resultScoreBar').style.width = `${qPct}%`;
+            }
+        }
+
+        /* 모달 제어 */
+        function toggleInfoModal() {
+            playSfx('tap');
+            document.getElementById('infoModal').classList.toggle('hidden');
+        }
+
+        function openQrModal() {
+            playSfx('tap');
+            document.getElementById('qrLightboxModal').classList.remove('hidden');
+        }
+
+        function closeQrModal() {
+            playSfx('tap');
+            document.getElementById('qrLightboxModal').classList.add('hidden');
+        }
+
+        /* 결과 공유 */
+        function shareResult() {
+            playSfx('tap');
+            const title = document.getElementById('resultCardTitle').innerText;
+            const score = document.getElementById('resultScoreText').innerText;
+            const text = `[2026 남이섬 연수 스마트 가이드]
+제 연수 결과는 "${title}" (지수: ${score}) 입니다! 🍁
+선생님도 출발 전 재미있게 테스트해보세요!
+상세안내: https://app.notion.com/p/_-3e795920bf1d808990fccd8c57019c93?source=copy_link`;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('결과가 클립보드에 복사되었습니다! 메신저나 단톡방에 공유해보세요.');
+                }).catch(() => {
+                    alert('결과를 복사했습니다!');
+                });
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                alert('결과가 클립보드에 복사되었습니다! 메신저나 단톡방에 공유해보세요.');
+            }
+        }
+    </script>
+</body>
+</html>
